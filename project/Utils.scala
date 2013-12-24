@@ -9,7 +9,6 @@ trait Utils {
  // name says it all  
   def normalizeSiteName(s: String) = s.toLowerCase.replaceAll("""[^a-z0-9]+""", "")
 
-
   /**
    * Look for a java source file
    */
@@ -53,9 +52,9 @@ trait Utils {
 
   }
 
-  def writeFile(file: File, body: String) = {
+  def writeFile(file: File, body: String, log: Logger) = {
     //println("*** %s%s****\n".format(file.toString, body))
-    println("+++ %s".format(file.toString))
+    log.debug("+++ %s".format(file.toString))
     val w = new java.io.FileWriter(file)
     w.write(body)
     w.close
@@ -216,12 +215,12 @@ trait Utils {
 
   // copy files from a src dir to a target dir recursively 
   // filter files to copy
-  def recursiveCopy(src: File, tgt: File)(sel: File => Boolean) = {
+  def recursiveCopy(src: File, tgt: File, log: Logger)(sel: File => Boolean) = {
     val nsrc = src.getPath.length
     val cplist = (src ** "*").get.filterNot(_.isDirectory).filter(sel) map {
       x =>
         val dest = tgt / x.getPath.substring(nsrc)
-        println("+++ " + dest)
+        log.debug("+++ " + dest)
         (x, dest)
     }
     IO.copy(cplist).toSeq

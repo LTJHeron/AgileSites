@@ -28,7 +28,6 @@ trait AgileSitesSupport extends Utils {
 
   lazy val wcsCsdtJar = SettingKey[String]("wcs-csdt-jar", "WCS CSDT Jar")
   
-
   // generate tag access classes from tld files
   val coreGeneratorTask = (sourceGenerators in Compile) <+=
     (sourceManaged in Compile, wcsWebapp, baseDirectory, wcsVersion) map {
@@ -84,7 +83,14 @@ trait AgileSitesSupport extends Utils {
           val workspaceSearch = (("#" + defaultWorkspace(sites)) +: args).reverse.filter(_.startsWith("#")).head.substring(1)
           val workspace = workspaces.filter(_.indexOf(workspaceSearch) != -1)
 
-          if (args.size == 0) {
+          if(args.size >0 && args(0) == "raw") {
+
+              //println(seljars.mkString("\n"))
+
+              Run.run("com.fatwire.csdt.client.main.CSDT", 
+                       seljars, args.drop(1), s.log)(runner)
+
+          } else if (args.size == 0) {
             println("""usage: wcs-dt  [<cmd>]  [<selector> ...] [#<workspace>]
                        | <workspace> can be a substring of available workspaces,
                        |   available workspaces are: %s
@@ -102,7 +108,6 @@ trait AgileSitesSupport extends Utils {
           else if (workspace.size > 1)
             println("workspace " + workspaceSearch + " is ambigous")
           else {
-
             val args1 = args.filter(!_.startsWith("#"))
             val firstArg = if (args1.size > 0) args1(0) else "listcs"
             val resources = if (args1.size > 1) args1.drop(1)
@@ -127,8 +132,8 @@ trait AgileSitesSupport extends Utils {
                 //"fromSites=" + sites,
                 "datastore=" + workspace.head)
 
-              println(seljars.mkString("\n"))
-
+              s.log.debug(seljars.mkString("\n"))
+              //s.log.debug(cmd.mkString(" "))
               Run.run("com.fatwire.csdt.client.main.CSDT", seljars, cmd, s.log)(runner)
             }
           }
@@ -179,30 +184,30 @@ trait AgileSitesSupport extends Utils {
   // package jar task - build the jar and copy it  to destination 
   lazy val wcsPackageJar = TaskKey[String]("wcs-package-jar", "WCS package jar")
   val wcsAssemblyJarTask = wcsAssemblyJar <<=
-    (assembly, wcsShared) map {
-      (jar, shared) =>
+    (assembly, wcsShared, streams) map {
+      (jar, shared, s) =>
 
         val destdir = file(shared) / "agilesites"
         val destjar = file(shared) / "agilesites" / jar.getName
 
         destdir.mkdir
         IO.copyFile(jar, destjar)
-        println("+++ " + destjar.getAbsolutePath)
+        s.log.info("+++ " + destjar.getAbsolutePath)
         destjar.getAbsolutePath.toString
     }
 
   // package jar task - build the jar and copy it  to destination 
   lazy val wcsAssemblyJar = TaskKey[String]("wcs-package-jar", "WCS package jar")
   val wcsPackageJarTask = wcsPackageJar <<=
-    (Keys.`package` in Compile, wcsShared) map {
-      (jar, shared) =>
+    (Keys.`package` in Compile, wcsShared, streams) map {
+      (jar, shared, s) =>
 
         val destdir = file(shared) / "agilesites"
         val destjar = file(shared) / "agilesites" / jar.getName
 
         destdir.mkdir
         IO.copyFile(jar, destjar)
-        println("+++ " + destjar.getAbsolutePath)
+        s.log.info("+++ " + destjar.getAbsolutePath)
         destjar.getAbsolutePath.toString
     }
 
@@ -211,33 +216,30 @@ trait AgileSitesSupport extends Utils {
 
   // copy resources from the app to the webapp task
 
-
-
   // copy statics
   lazy val wcsCopyStatic = TaskKey[Unit]("wcs-copy-static", "WCS copy static resources")
   val wcsCopyStaticTask = wcsCopyStatic <<=
-    (baseDirectory, wcsWebapp) map {
-      (base, tgt) =>
+    (baseDirectory, wcsWebapp, streams) map {
+      (base, tgt, s) =>
         val src = base / "app" / "src" / "main" / "static"
-        recursiveCopy(src, file(tgt))(x => true)
+        s.log.debug("copyStatic from"+src)
+        recursiveCopy(src, file(tgt), s.log)(x => true)
     }
 
 
   val wcsCopyHtmlTask = (resourceGenerators in Compile) <+=
-      (baseDirectory, resourceManaged in Compile) map {
-        (base, dstDir) =>
+      (baseDirectory, resourceManaged in Compile, streams) map {
+        (base, dstDir, s) =>
           val srcDir = base / "src" / "main" / "static"
-          println("*** " + srcDir)
-          recursiveCopy(srcDir, dstDir)(isHtml)
+          s.log.debug("copyHtml from"+srcDir)
+          recursiveCopy(srcDir, dstDir, s.log)(isHtml)
       }
 
   // generate index classes from sources
   val wcsGenerateIndexTask =
     (resourceGenerators in Compile) <+=
-      (compile in Compile, resourceManaged in Compile) map {
-        (analysis, dstDir) =>
-
-
+      (compile in Compile, resourceManaged in Compile, streams) map {
+        (analysis, dstDir, s) =>
           val groupIndexed =
             analysis.apis.allInternalSources. // all the sources
               map(extractClassAndIndex(_)). // list of Some(index, class) or Nome
@@ -250,7 +252,7 @@ trait AgileSitesSupport extends Utils {
           val l = for ((subfile, lines) <- groupIndexed) yield {
             val file = dstDir / subfile
             val body = lines mkString ("# generated - do not edit\n", "\n", "\n# by AgileSites build\n")
-            writeFile(file, body)
+            writeFile(file, body, s.log)
             file
           }
 
@@ -271,7 +273,6 @@ trait AgileSitesSupport extends Utils {
   lazy val wcsDeploy = TaskKey[Unit]("wcs-deploy", "WCS Deploy")
   val wcsDeployTask = wcsDeploy <<=
     (wcsCopyStatic, wcsUpdateAssets) map { (count, update) => () }
-
 
   lazy val wcsCopyJarsOffline = TaskKey[Unit]("wcs-copyjars-offline", "WCS Copy Jars Offline")
   val wcsCopyJarsOfflineTask = wcsCopyJarsOffline <<= 
@@ -316,8 +317,6 @@ trait AgileSitesSupport extends Utils {
                 |\nYou need to complete with "wcs-setup-online".""".stripMargin)
         }
   }
-
-
 
 
   // setup task

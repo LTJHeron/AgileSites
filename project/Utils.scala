@@ -160,7 +160,7 @@ trait Utils {
   }
 
   // select jars for the setup offline
-  def setupCopyJarsOffline(webapp: String, classpathFiles: Seq[File]) {
+  def setupCopyJarsWeb(webapp: String, classpathFiles: Seq[File]) {
 
     val destlib = file(webapp) / "WEB-INF" / "lib"
 
@@ -169,15 +169,15 @@ trait Utils {
     val removeJars = destlib.listFiles.filter(_.getName.toLowerCase.startsWith("agilesites-core"))
 
     setupCopyJars(destlib, addJars, removeJars)
+  
+    //println(destlib)
   }
 
   // select jars for the setup online
-  def setupCopyJarsOnline(shared: String, classpathFiles: Seq[File]) {
-
-    val destlib = file(shared) / "agilesites"
-    destlib.mkdirs
-
-    //println(destlib)
+  def setupCopyJarsLib(shared: String, classpathFiles: Seq[File]) {
+  
+    val destlib = file(shared) / "agilesites" / "lib"
+    destlib.mkdirs 
 
     // jars to include when performing a setup
     val addJars = classpathFiles filter(AgileSitesBuild.setupFilter accept _)
@@ -186,10 +186,9 @@ trait Utils {
     // jars to remove when performing a setup
     val removeJars = destlib.listFiles
     //println(removeJars)  
-
     
     setupCopyJars(destlib, addJars, removeJars)
-  } 
+ } 
 
   // copy jars filtering and and remove
   def setupCopyJars(destlib: File, addJars: Seq[File], removeJars: Seq[File]) {

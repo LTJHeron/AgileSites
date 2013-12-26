@@ -79,21 +79,23 @@ trait AgileSitesSupport extends Utils {
           val re = "^(cas-client-core-\\d|csdt-client-\\d|rest-api-\\d|wem-sso-api-\\d|wem-sso-api-cas-\\d|spring-\\d|commons-logging-|servlet-api|sites-security|esapi-|cs-|http(client|core|mime)-).*.jar$".r;
           val seljars = classpath.files.filter(f => !re.findAllIn(f.getName).isEmpty)
 
+          val sitesSearch = (( "!" + sites) +: args).reverse.filter(_.startsWith("!")).head.substring(1)
           val workspaces = (file("export") / "envision").listFiles.filter(_.isDirectory).map(_.getName)
           val workspaceSearch = (("#" + defaultWorkspace(sites)) +: args).reverse.filter(_.startsWith("#")).head.substring(1)
           val workspace = workspaces.filter(_.indexOf(workspaceSearch) != -1)
 
           if(args.size >0 && args(0) == "raw") {
 
-              //println(seljars.mkString("\n"))
 
               Run.run("com.fatwire.csdt.client.main.CSDT", 
                        seljars, args.drop(1), s.log)(runner)
 
-          } else if (args.size == 0) {
-            println("""usage: wcs-dt  [<cmd>]  [<selector> ...] [#<workspace>]
+          } else if(args.size == 0) {
+            println("""usage: wcs-dt  [<cmd>]  [<selector> ...] [#<workspace>] [!<sites>]
                        | <workspace> can be a substring of available workspaces,
                        |   available workspaces are: %s
+                       | <sites> are the sites (comma separated list of site names) 
+                       |   defaults to '%s' 
                        | <cmd> defaults to 'listcs'
                        |   must be one of 'listcs', 'listds', 'import', 'export', 
                        | <selector> check developer tool documentation for syntax
@@ -102,13 +104,13 @@ trait AgileSitesSupport extends Utils {
                        |      listds: @ALL_ASSETS
                        |      import: @SITE @ASSET_TYPE @ALL_ASSETS @STARTMENU @TREETAB
                        |      export: @SITE @ASSET_TYPE
-                       |""".stripMargin.format(workspaces.mkString("'", "', '", "'")))
+                       |""".stripMargin.format(workspaces.mkString("'", "', '", "'"), sitesSearch))
           } else if (workspace.size == 0)
             println("workspace " + workspaceSearch + " not found")
           else if (workspace.size > 1)
             println("workspace " + workspaceSearch + " is ambigous")
           else {
-            val args1 = args.filter(!_.startsWith("#"))
+            val args1 = args.filter(!_.startsWith("#")).filter(!_.startsWith("!"))
             val firstArg = if (args1.size > 0) args1(0) else "listcs"
             val resources = if (args1.size > 1) args1.drop(1)
             else firstArg match {
@@ -129,7 +131,7 @@ trait AgileSitesSupport extends Utils {
                 "password=" + password,
                 "cmd=" + firstArg,
                 "resources=" + res,
-                //"fromSites=" + sites,
+                "fromSites=" + sitesSearch,
                 "datastore=" + workspace.head)
 
               s.log.debug(seljars.mkString("\n"))
@@ -140,21 +142,12 @@ trait AgileSitesSupport extends Utils {
       }
   }
 
-
-  lazy val wcsCopyJarsOnline = TaskKey[Unit]("wcs-copyjars-online", "WCS Copy Jars Offline")
-  val wcsCopyJarsOnlineTask = wcsCopyJarsOnline <<= 
-    (fullClasspath in Compile, wcsShared) map {
-      (classpath, shared) =>
-            //for(a <- classpath) println(a)
-          setupCopyJarsOnline(shared, classpath.files)
-  }
-
   lazy val wcsSetupOnline = InputKey[Unit]("wcs-setup-online", "WCS Setup Online")
   val wcsSetupOnlineTask = wcsSetupOnline <<= inputTask {
     (argsTask: TaskKey[Seq[String]]) =>
-      (argsTask, wcsCopyJarsOnline, wcsVersion, wcsUrl, wcsSites, wcsUser, wcsPassword, 
+      (argsTask, wcsVersion, wcsUrl, wcsSites, wcsUser, wcsPassword, 
         fullClasspath in Compile, wcsWebapp, wcsShared, streams, runner) map {
-        (args, _, version, httpUrl, sites, user, password, 
+        (args, version, httpUrl, sites, user, password, 
           classpath, webapp, shared, s, runner) =>
           
           val seljars = classpath.files
@@ -274,11 +267,20 @@ trait AgileSitesSupport extends Utils {
   val wcsDeployTask = wcsDeploy <<=
     (wcsCopyStatic, wcsUpdateAssets) map { (count, update) => () }
 
-  lazy val wcsCopyJarsOffline = TaskKey[Unit]("wcs-copyjars-offline", "WCS Copy Jars Offline")
-  val wcsCopyJarsOfflineTask = wcsCopyJarsOffline <<= 
+
+  lazy val wcsCopyJarsWeb = TaskKey[Unit]("wcs-copyjars-web", "WCS Copy Jars to WEB-INF/lib")
+  val wcsCopyJarsWebTask = wcsCopyJarsWeb <<= 
     (managedClasspath in Runtime, wcsWebapp) map {
       (classpath, webapp) =>
-            setupCopyJarsOffline(webapp, classpath.files)
+            setupCopyJarsWeb(webapp, classpath.files)
+  }
+
+
+  lazy val wcsCopyJarsLib = TaskKey[Unit]("wcs-copyjars-lib", "WCS Copy Jars to agilesites/lib")
+  val wcsCopyJarsLibTask = wcsCopyJarsLib <<= 
+    (fullClasspath in Compile, wcsShared) map {
+      (classpath, shared) =>
+         setupCopyJarsLib(shared, classpath.files)
   }
 
   // setup offline task
@@ -286,10 +288,10 @@ trait AgileSitesSupport extends Utils {
   val wcsSetupOfflineTask = wcsSetupOffline <<= inputTask {
     (argTask: TaskKey[Seq[String]]) =>
       (argTask,
-        wcsCopyJarsOffline, classDirectory in Compile,
+        wcsCopyJarsWeb, wcsCopyJarsLib, classDirectory in Compile,
         wcsSites, wcsVersion, wcsHome, wcsShared, wcsWebapp, wcsUrl,
          wcsFlexBlobs, wcsStaticBlobs, wcsVirtualHosts) map {
-          (args, _, classes,
+          (args, _, _, classes,
            sites, version, home, shared, webapp, url,
            flexBlobs, staticBlobs, virtualHosts) =>
 
@@ -318,12 +320,11 @@ trait AgileSitesSupport extends Utils {
         }
   }
 
-
   // setup task
   lazy val wcsSetupSatellite = InputKey[Unit]("wcs-setup-satellite", "WCS Setup Satellite Offline")
   val wcsSetupSatelliteTask = wcsSetupSatellite <<= inputTask {
     (argTask: TaskKey[Seq[String]]) =>
-      (argTask, wcsCopyJarsOffline, classDirectory in Compile,
+      (argTask, wcsCopyJarsWeb, classDirectory in Compile,
        wcsSites, wcsVersion, wcsWebapp,
        wcsFlexBlobs, wcsStaticBlobs, wcsVirtualHosts) map {
       (args, _, classes,

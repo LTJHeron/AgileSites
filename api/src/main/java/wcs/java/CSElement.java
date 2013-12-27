@@ -18,6 +18,7 @@ public class CSElement extends AssetSetup {
 
 	private Class<?> elementClass;
 	private String elementName;
+	private String jsp;
 
 	/**
 	 * Create a CSElement invoking the given elementClass
@@ -37,6 +38,8 @@ public class CSElement extends AssetSetup {
 		super("CSElement", "", name);
 		this.elementClass = elementClass;
 		this.elementName = elementName;
+		jsp = "/" + elementClass.getCanonicalName().replace(".", "/")
+				+ ".jsp";
 	}
 
 	/**
@@ -58,7 +61,12 @@ public class CSElement extends AssetSetup {
 	}
 
 	private String template(String clazz) {
-		return Util.getResource("/Streamer.jsp").replaceAll("%CLASS%", clazz);
+		String template = Util.getResource(jsp);
+		if (template == null) {
+			template = Util.getResource("/CSElement.jsp");
+			template = template.replaceAll("\\$class\\$", clazz);
+		}
+		return template;
 	}
 
 	void setData(MutableAssetData data) {
@@ -91,7 +99,7 @@ public class CSElement extends AssetSetup {
 		byte[] bytes = template(elementClass.getCanonicalName()).getBytes();
 		BlobObject blob = new BlobObjectImpl(elementJsp, "AgileSites", bytes);
 		data.getAttributeData("url").setData(blob);
-		
+
 		// data.getAttributeData("createdby").setData("agilesites");
 		// data.getAttributeData("createddate").setData(new Date());
 		// data.getAttributeData("Mapping").setData(new ArrayList());

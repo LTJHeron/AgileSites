@@ -2,7 +2,7 @@
 %><%@ taglib prefix="render" uri="futuretense_cs/render.tld"
 %><%@ taglib prefix="ics" uri="futuretense_cs/ics.tld"
 %><%@ page import="wcs.core.*,wcs.api.*"
-%><cs:ftcs><%! final static Log log = wcs.api.Log.getLog("jsp.wcs.api.Router");
+%><cs:ftcs><%! final static Log log = wcs.api.Log.getLog("wcs.core.AAAgileRouter");
 %><%
   Call c = WCS.route(ics, 
    ics.GetVar("site"), 

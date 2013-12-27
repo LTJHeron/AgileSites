@@ -30,6 +30,7 @@ public class Template extends AssetSetup {
 	private String folderelement;
 
 	private String clazz;
+	private String jsp;
 	private String cscache;
 	private String sscache;
 	private char ttype;
@@ -55,9 +56,9 @@ public class Template extends AssetSetup {
 	 */
 	public Template(String subtype, String name, char ttype, String forSubtype,
 			Class<?> elementClass) {
-
 		super("Template", subtype, name);
 		this.clazz = elementClass.getCanonicalName();
+		this.jsp = "/" + clazz.replace(".", "/") + ".jsp";
 		this.subtype = subtype;
 		this.name = name;
 		this.ttype = ttype;
@@ -137,7 +138,10 @@ public class Template extends AssetSetup {
 	}
 
 	private String template(String clazz) {
-		return Util.getResource("/Streamer.jsp").replaceAll("%CLASS%", clazz);
+		String template = Util.getResource(jsp);
+		if (template == null)
+			template = Util.getResource("/Template.jsp");
+		return template.replaceAll("\\$class\\$", clazz);
 	}
 
 	@Override

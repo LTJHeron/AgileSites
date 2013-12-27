@@ -4,10 +4,9 @@
 %><%@ taglib prefix="insite" uri="futuretense_cs/insite.tld"
 %><%@ taglib prefix="render" uri="futuretense_cs/render.tld"
 %><%@ page import="wcs.core.*,wcs.api.*,wcs.Api" 
-%><%! final static Log log = Log.getLog("jsp.%CLASS%");
-%><cs:ftcs><ics:if condition='<%=ics.GetVar("tid") != null%>'><ics:then><render:logdep cid='<%=ics.GetVar("tid")%>' c="Template" /></ics:then></ics:if><ics:if condition='<%=ics.GetVar("eid") != null%>'><ics:then><render:logdep cid='<%=ics.GetVar("eid")%>' c="CSElement" /></ics:then></ics:if><ics:if condition='<%=ics.GetVar("seid") != null%>'><ics:then><render:logdep cid='<%=ics.GetVar("seid")%>' c="SiteEntry" /></ics:then></ics:if><% String res = WCS.dispatch(ics, "%CLASS%");
-Sequencer seq = new Sequencer(res);
-%><%=seq.header()%><%
+%><%! final static Log log = Log.getLog("wcs.core.AAAgileStreamer");
+%><cs:ftcs><% Sequencer seq = new Sequencer(ics.GetVar("stream"));
+%><%= seq.header() %><%
 while (seq.hasNext()) {
  try {
 	Call c = seq.next();
@@ -143,5 +142,5 @@ if (name.equalsIgnoreCase("INSITE:EDIT")) {
 } /* END INSITE:EDIT */
 %><% // -----------------------------------------------------
 %><%=seq.header()%><%
-} catch(Throwable ex) { log.error(ex, "jsp.%CLASS%"); } }
+} catch(Throwable ex) { log.error(ex, "Streamer"); } }
 %></cs:ftcs>

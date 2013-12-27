@@ -235,17 +235,17 @@ public class Util {
 	}
 
 	/**
-	 * Get a resource from the classpath
+	 * Get a resource from the classpath or null if not found
 	 * 
 	 * @param res
 	 * @return
 	 */
 	public static String getResource(String res) {
-		InputStream is = null;
+		InputStream is = Util.class.getResourceAsStream(res);
+		if (is == null)
+			return null;
 		try {
-			return new java.util.Scanner(
-					is = Util.class.getResourceAsStream(res)).useDelimiter(
-					"\\A").next();
+			return new java.util.Scanner(is).useDelimiter("\\A").next();
 		} finally {
 			try {
 				is.close();

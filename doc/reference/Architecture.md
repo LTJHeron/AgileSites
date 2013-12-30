@@ -1,4 +1,4 @@
-# Architecture
+**NOTE** For version 1.0, not yet updated to 1.8
 
 The following diagram describes the architecture of the framework.
 
@@ -10,7 +10,7 @@ The framework includes also some  some elements and site entries (installed star
 
 - `AAAgileRouter`: route requests coming from the url assembler 
 - `AAAgileSetup`: execute the deployment of the code
-- `AAAglieLog`: handle log activation requests from the shell
+- `AAAgileLog`: handle log activation requests from the shell
 
 When the user executes the `wcs-package-jar` the application will be packaged in a single jars and deployed on the filesystem in a location accessible by the core. 
 

@@ -230,8 +230,9 @@ trait AgileSitesSupport extends AgileSitesUtil {
     (baseDirectory, wcsWebapp, streams) map {
       (base, tgt, s) =>
         val src = base / "app" / "src" / "main" / "static"
-        s.log.debug("copyStatic from"+src)
-        recursiveCopy(src, file(tgt), s.log)(x => true)
+        s.log.debug(" from"+src)
+        val l = recursiveCopy(src, file(tgt), s.log)(x => true)
+        println("*** copied "+(l.size)+" static files")
     }
 
   val wcsCopyHtmlTask = (resourceGenerators in Compile) <+=
@@ -312,13 +313,13 @@ trait AgileSitesSupport extends AgileSitesUtil {
   lazy val wcsSetup = InputKey[Unit]("wcs-setup", "WCS Setup Offline")
   val wcsSetupTask = wcsSetup <<= inputTask {
     (argTask: TaskKey[Seq[String]]) =>
-      (argTask,
+      (argTask, 
         wcsCopyJarsWeb, wcsCopyJarsLib, classDirectory in Compile,
         wcsSites, wcsVersion, wcsHome, wcsShared, wcsWebapp, wcsUrl,
-         wcsFlexBlobs, wcsStaticBlobs, wcsVirtualHosts) map {
+         wcsFlexBlobs, wcsStaticBlobs, wcsVirtualHosts, wcsPackageJar, wcsCopyStatic) map {
           (args, _, _, classes,
            sites, version, home, shared, webapp, url,
-           flexBlobs, staticBlobs, virtualHosts) =>
+           flexBlobs, staticBlobs, virtualHosts, _, _) =>
 
             val static = (file(shared) / "Storage" / "Static") getAbsolutePath
 

@@ -80,6 +80,7 @@ trait AgileSitesUtil {
       if(p4c!=null && p4c!="") prp.setProperty("uri.assembler.5.classname", p4c)
       if(p3s!=null && p4s!="") prp.setProperty("uri.assembler.4.shortform", p3s)
       if(p3s!=null && p4s!="") prp.setProperty("uri.assembler.4.classname", p3c)
+
       prp.setProperty("uri.assembler.3.shortform", p2s)
       prp.setProperty("uri.assembler.3.classname", p2c)
       prp.setProperty("uri.assembler.2.shortform", p1s)
@@ -102,8 +103,9 @@ trait AgileSitesUtil {
       "updated by AgileSites setup")
   }
 
+
   // configure futurentense.ini
-  def setupFutureTenseIni(home: String, shared: String, sites: String, static: String, version: String) {
+  def setupFutureTenseIni(home: String, shared: String, static: String, sites: String, version: String) {
 
     val prpFile = file(home) / "futuretense.ini"
     val prp = new java.util.Properties
@@ -157,9 +159,9 @@ trait AgileSitesUtil {
 
     val destlib = file(webapp) / "WEB-INF" / "lib"
 
-    val addJars = classpathFiles.filter( _.getName.startsWith("agilesites-core") )
+    val addJars = classpathFiles.filter(AgileSitesBuild.setupWebFilter accept _)
     
-    val removeJars = destlib.listFiles.filter(_.getName.toLowerCase.startsWith("agilesites-core"))
+    val removeJars = destlib.listFiles.filter(AgileSitesBuild.setupWebFilter accept _)
 
     setupCopyJars(destlib, addJars, removeJars)
   
@@ -174,13 +176,13 @@ trait AgileSitesUtil {
     val destlib = parentlib / "lib"
 
     destlib.mkdirs 
-
-    // jars to include when performing a setup
-    val addJars = classpathFiles filter(AgileSitesBuild.setupFilter accept _)
-    //println(addJars)
-
-    // jars to remove when performing a setup
+   // jars to remove when performing a setup
     val removeJars = destlib.listFiles
+ 
+    // jars to include when performing a setup
+    val addJars = classpathFiles.filter(AgileSitesBuild.setupLibFilter accept _)
+ 
+    //println(addJars)
     //println(removeJars)  
     
     setupCopyJars(destlib, addJars, removeJars)

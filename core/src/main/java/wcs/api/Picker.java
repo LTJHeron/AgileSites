@@ -1,7 +1,6 @@
-package wcs.java;
+package wcs.api;
+
 import static wcs.Api.*;
-import wcs.api.Content;
-import wcs.api.Log;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Stack;
@@ -12,10 +11,16 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-
 /**
  * Picker is a template engine building html pages or snippets using
  * replacements and modifications in the html with jQuery-style selectors.
+ * 
+ * It return a string or output that string to a stream (only if ICS was passed
+ * as argument when constructed).
+ * 
+ * It also is able to replace variables marked with a moustache sintax
+ * <tt>{{Var}}</tt> extracting value from a sequences of contents passed as
+ * argument to the output functions.
  * 
  * @author msciab
  * 
@@ -34,6 +39,8 @@ public class Picker {
 	private Element bottom;
 	// last select operation was ok?
 	private boolean selectOk;
+
+	private Env env = null;
 
 	private void warn(Exception ex, String warning) {
 		warnings.append("<li>").append(warning); //
@@ -63,59 +70,44 @@ public class Picker {
 	}
 
 	/**
-	 * Get a picker form a given resource in the classpath
+	 * Create a picker from a string with an env - use Env.pickString instead
 	 * 
-	 * @param resource
-	 * @param cssq
-	 * @return a new picker
+	 * @param html
 	 */
-	public static Picker load(String resource, String cssq) {
-		return new Picker(Picker.class.getResourceAsStream(resource), null,
-				cssq);
+	public Picker(Env e, String html) {
+		this(e, null, html, null);
 	}
 
 	/**
-	 * Get a picker form a given resource in the classpath and select the given
-	 * query
+	 * Create a picker from a string
 	 * 
-	 * @param resource
-	 * @param cssq
-	 * @return a new picker
+	 * @param html
 	 */
-	public static Picker load(String resource) {
-		return new Picker(Picker.class.getResourceAsStream(resource), null,
-				null);
+	public Picker(String html) {
+		this(null, null, html, null);
 	}
 
 	/**
-	 * Get a picker from a string
+	 * This constructor is not for generic use - use Env.pick to create a picker
 	 * 
-	 * @param resource
-	 * @param cssq
-	 * @return a new picker
-	 */
-	public static Picker create(String html) {
-		return new Picker(null, html, null);
-	}
-
-	/**
-	 * Get a picker from a string and select the given query
+	 * Create a picker for a string or for an input stream and select the note
+	 * pointend by the cssq.
 	 * 
-	 * @param resource
-	 * @param cssq
-	 * @return a new picker
+	 * Store the env for streaming when asked for it.
+	 * 
+	 * Note that if env is null then no streaming is done.
+	 * 
+	 * If the input stream is null then the html string is used otherwise it is
+	 * ignored.
+	 * 
+	 * If the cssq is null then no substream is done.
+	 * 
 	 */
-	public static Picker create(String html, String cssq) {
-		return new Picker(null, html, cssq);
-	}
-
-	/**
-	 * Create a picker for a string
-	 */
-	private Picker(InputStream is, String html, String cssq) {
+	public Picker(Env e, InputStream is, String html, String cssq) {
 
 		Element elem = null;
 		Document doc = null;
+		this.env = e;
 
 		// parse
 		try {
@@ -126,8 +118,8 @@ public class Picker {
 				log.debug("parsing string");
 				doc = Jsoup.parse(html);
 			}
-		} catch (Exception e) {
-			warn(e, "cannot parse template");
+		} catch (Exception ex) {
+			warn(ex, "cannot parse template");
 		}
 
 		// select internally
@@ -297,8 +289,37 @@ public class Picker {
 	}
 
 	/**
-	 * Return the inner html of the selected nod. Replace the content of all the
-	 * variables between {{ }}
+	 * Stream the output of html()
+	 */
+	public void stream(Content... contents) {
+		if (env != null)
+			env.stream(html(contents));
+		else
+			log.warn("Attempt to stream without proving an env");
+	}
+
+	/**
+	 * Stream the output ot outerHtml()
+	 */
+	public void outerStream(Content... contents) {
+		if (env != null)
+			env.stream(outerHtml(contents));
+		else
+			log.warn("Attempt to stream without proving an env");
+	}
+
+	/**
+	 * Stream the output of innerHtml()
+	 */
+	public void innerStream(Content... contents) {
+		stream(contents);
+	}
+
+	/**
+	 * Return the inner html of the selected node. Use the contents to apply a
+	 * replacement to all the moustache marked variables "{{Var}}}" Get the
+	 * value applying the getString to each content in order until found.
+	 * 
 	 */
 	public String html(Content... content) {
 		return moustache(bottom.html(), content) + warnings();
@@ -307,12 +328,16 @@ public class Picker {
 	/**
 	 * Alias for html(...)
 	 */
-	public String innerHtml(Content ... content) {
+	public String innerHtml(Content... content) {
 		return html(content);
 	}
-	
+
 	/**
 	 * Return the html of the selected node including the node itself
+	 * 
+	 * Use the contents to apply a replacement to all the moustache marked
+	 * variables "{{Var}}}" Get the value applying the getString to each content
+	 * in order until found.
 	 */
 	public String outerHtml(Content... content) {
 		return moustache(bottom.outerHtml(), content) + warnings();
@@ -410,7 +435,7 @@ public class Picker {
 	}
 
 	/**
-	 * Convenience method to dump a generic html are decoded.
+	 * Convenience method to dump a generic html, decoding special sequences.
 	 * 
 	 * @param stream
 	 * @return
@@ -452,7 +477,6 @@ public class Picker {
 			element.replaceWith(newTag.childNode(0).childNode(1).childNode(0));
 		}
 		return this;
-
 	}
 
 }

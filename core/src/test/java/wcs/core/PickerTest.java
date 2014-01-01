@@ -1,22 +1,21 @@
-package wcs.java;
+package wcs.core;
 
 import static org.junit.Assert.assertEquals;
 import static wcs.Api.*;
-import wcs.java.Picker;
 import wcs.api.Content;
+import wcs.api.Picker;
 
 import org.junit.Test;
 
 
 public class PickerTest {
 
-	Picker none = Picker.create("None");
-	Picker one1 = Picker.create("{{First}} Some");
-	Picker one2 = Picker.create("Some {{First}}");
-	Picker one3 = Picker.create("Some {{First}} Else");
-	Picker two = Picker.create("Some {{First}} then {{Second}}");
-	Picker two2 = Picker
-			.create("Some {{First}} then {{Second}} then {{First}}");
+	Picker none = new Picker("None");
+	Picker one1 = new Picker("{{First}} Some");
+	Picker one2 = new Picker("Some {{First}}");
+	Picker one3 = new Picker("Some {{First}} Else");
+	Picker two =  new Picker("Some {{First}} then {{Second}}");
+	Picker two2 = new Picker("Some {{First}} then {{Second}} then {{First}}");
 
 	Content c0 = model();
 	Content c1 = model(arg("First", "[first]"));

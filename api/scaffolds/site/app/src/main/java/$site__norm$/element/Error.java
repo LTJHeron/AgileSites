@@ -3,8 +3,8 @@ import static wcs.Api.*;
 import wcs.api.Log;
 import wcs.api.Index;
 import wcs.api.Env;
+import wcs.api.Picker;
 import wcs.java.Element;
-import wcs.java.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 
@@ -19,7 +19,7 @@ public class Error extends Element {
 	@Override
 	public String apply(Env e) {
 		log.error("$site$ Error: ", e.getString("error"));
-		Picker p = Picker.load("/$site;format="normalize"$/simple.html", "#content");
+		Picker p = e.pick("/$site;format="normalize"$/simple.html", "#content");
 		return p.innerHtml(model(arg("Title", "Error"),
 				        arg("Text", e.getString("error")), 
 				        arg("Footer","")));

@@ -7,10 +7,10 @@ import wcs.api.Id;
 import wcs.api.Index;
 import wcs.api.Log;
 import wcs.api.SitePlan;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.Element;
-import wcs.java.Picker;
 
 @Index("demo/elements.txt")
 public class Breadcrump extends Element {
@@ -27,7 +27,7 @@ public class Breadcrump extends Element {
 		if (log.debug())
 			log.debug("Demo Breadcrump");
 
-		Picker html = Picker.load("/blueprint/template.html", "#breadcrump");
+		Picker html = e.pick("/blueprint/template.html", "#breadcrump");
 		StringBuilder sb = new StringBuilder();
 		String sep = "&nbsp;&raquo;&nbsp;";
 

@@ -3,7 +3,7 @@ import static wcs.Api.*;
 import wcs.api.Log;
 import wcs.api.Index;
 import wcs.api.Env;
-import wcs.java.Picker;
+import wcs.api.Picker;
 import wcs.java.Element;
 import wcs.java.CSElement;
 import wcs.java.AssetSetup;
@@ -18,7 +18,7 @@ public class $cselement$ extends Element {
 	@Override
 	public String apply(Env e) {
 		//log.debug("$cselement$");
-		Picker html = Picker.load("/$site;format="normalize"$/simple.html" , "#footer");
+		Picker html = e.pick("/$site;format="normalize"$/simple.html" , "#footer");
 		return html.html(model(arg("Footer","by Sciabarra.com ltd")));
 	}
 }

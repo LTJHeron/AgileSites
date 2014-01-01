@@ -5,7 +5,7 @@ import wcs.api.Index;
 import wcs.api.Log;
 import wcs.java.AssetSetup;
 import wcs.java.Element;
-import wcs.java.Picker;
+import wcs.api.Picker;
 import wcs.java.Template;
 
 @Index("demo/elements.txt")
@@ -26,7 +26,7 @@ public class ContentSeeAlso extends Element {
 		if (log.debug())
 			log.debug("Demo ContentSeeAlso");
 
-		Picker html = Picker.load("/blueprint/template.html", "#seealso1");
+		Picker html = e.pick("/blueprint/template.html", "#seealso1");
 		Asset a = e.getAsset();
 		html.replace("#seealso-title1", a.getString("Title"));
 		html.replace("#seealso-text1", a.getString("Summary"));
@@ -36,7 +36,7 @@ public class ContentSeeAlso extends Element {
 	}
 
     public String applyTouch(Env e) {
-        Picker html = Picker.load("/blueprint/template.html", "#seealso1");
+        Picker html = e.pick("/blueprint/template.html", "#seealso1");
         Asset a = e.getAsset();
         html.replace("#seealso-title1", a.getString("Title"));
         html.replace("#seealso-text1", a.getString("Summary"));

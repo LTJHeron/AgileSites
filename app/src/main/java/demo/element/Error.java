@@ -5,10 +5,10 @@ import static wcs.Api.model;
 import wcs.api.Env;
 import wcs.api.Index;
 import wcs.api.Log;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.Element;
-import wcs.java.Picker;
 
 @Index("demo/elements.txt")
 public class Error extends Element {
@@ -24,7 +24,7 @@ public class Error extends Element {
 		if (log.debug())
 			log.debug("Demo Error");
 
-		return Picker.load("/demo/simple.html", "#content")
+		return e.pick("/demo/simple.html", "#content")
 				.html(model(arg("Title", "Error"),
 						arg("Text", e.getString("error"))));
 	}

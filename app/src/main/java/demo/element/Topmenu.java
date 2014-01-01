@@ -6,10 +6,10 @@ import wcs.api.Id;
 import wcs.api.Index;
 import wcs.api.Log;
 import wcs.api.SitePlan;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.Element;
-import wcs.java.Picker;
 
 @Index("demo/elements.txt")
 public class Topmenu extends Element {
@@ -26,7 +26,7 @@ public class Topmenu extends Element {
 		if (log.debug())
 			log.debug("Demo Topmenu");
 
-		Picker html = Picker.load("/blueprint/template.html", "#topmenu");
+		Picker html = e.pick("/blueprint/template.html", "#topmenu");
 		log.debug("picker=" + html);
 
 		html.dump(log);

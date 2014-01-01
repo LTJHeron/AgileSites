@@ -6,10 +6,10 @@ import wcs.api.Id;
 import wcs.api.Index;
 import wcs.api.Log;
 import wcs.api.SitePlan;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.Element;
-import wcs.java.Picker;
 
 @Index("demo/elements.txt")
 public class Tree extends Element {
@@ -49,7 +49,7 @@ public class Tree extends Element {
 		this.sp = e.getSitePlan();
 
 		// get model and view
-		Picker html = Picker.load("/blueprint/template.html", "#tree");
+		Picker html = e.pick("/blueprint/template.html", "#tree");
 
 		// navigate the siteplan
 		Id parent = sp.current();

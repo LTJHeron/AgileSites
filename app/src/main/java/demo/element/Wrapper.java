@@ -5,10 +5,10 @@ import wcs.api.Asset;
 import wcs.api.Env;
 import wcs.api.Index;
 import wcs.api.Log;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.Element;
-import wcs.java.Picker;
 import wcs.java.SiteEntry;
 
 @Index("demo/elements.txt")
@@ -26,7 +26,7 @@ public class Wrapper extends Element {
 		if (log.debug())
 			log.trace("Demo Wrapper");
 
-		Picker html = Picker.load("/blueprint/template.html");
+		Picker html = e.pick("/blueprint/template.html");
 
 		// change relative references to absolute
 		html.prefixAttrs("link[rel=stylesheet]", "href", "/cs/blueprint/");

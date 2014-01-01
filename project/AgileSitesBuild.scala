@@ -15,7 +15,8 @@ import giter8.ScaffoldPlugin.scaffoldSettings
 object AgileSitesBuild extends Build with AgileSitesSupport {
 
   // jars to be added to the library setup
-  val setupFilter =  "agilesites-api*" || "junit*" || "hamcrest*"
+  val setupWebFilter =  "agilesites-core*" || "agilesites-api*"
+  val setupLibFilter =  "junit*" || "hamcrest*"
 
   ///  core dependencies - those are used for compiling
   val coreDependencies = Seq(
@@ -40,7 +41,7 @@ object AgileSitesBuild extends Build with AgileSitesSupport {
     "ics.jar" || "cs.jar" || "xcelerate.jar" || "gator.jar" || "visitor.jar" || "ehcache-*" || "sites-*" || "esapi-*"
 
   /// END CHANGES
-  val v = "1.8"
+  val v = "1.8.1-SNAPSHOT"
 
   val includeFilterUnmanagedJars = includeFilter in unmanagedJars := unmanagedFilter
 

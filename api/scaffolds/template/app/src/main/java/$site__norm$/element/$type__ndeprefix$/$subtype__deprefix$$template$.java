@@ -4,7 +4,7 @@ import wcs.api.Log;
 import wcs.api.Index;
 import wcs.api.Asset;
 import wcs.api.Env;
-import wcs.java.Picker;
+import wcs.api.Picker;
 import wcs.java.Element;
 import wcs.java.Template;
 import wcs.java.AssetSetup;
@@ -22,7 +22,7 @@ public class $subtype;format="deprefix"$$template$ extends Element {
 
 	@Override
 	public String apply(Env e) {
-		Picker html = Picker.load("/$site;format="normalize"$/simple.html" , "#detail");
+		Picker html = e.pick("/$site;format="normalize"$/simple.html" , "#detail");
 		Asset a = e.getAsset();
 		return html.html(a, e);
 	}

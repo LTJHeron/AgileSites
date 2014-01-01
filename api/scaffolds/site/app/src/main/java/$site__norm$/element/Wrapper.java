@@ -5,7 +5,7 @@ import wcs.api.Index;
 import wcs.api.Asset;
 import wcs.api.Model;
 import wcs.api.Env;
-import wcs.java.Picker;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.SiteEntry;
@@ -25,7 +25,7 @@ public class Wrapper extends Element {
 			log.trace("$site$ Wrapper");
 		
 		// change relative references to absolute
-		Picker html = Picker.load("/$site;format="normalize"$/simple.html");
+		Picker html = e.pick("/$site;format="normalize"$/simple.html");
 		html.prefixAttrs("link[rel=stylesheet]", "href", "/cs/$site;format="normalize"$/");
 		html.prefixAttrs("script", "src", "/cs/$site;format="normalize"$/");
 

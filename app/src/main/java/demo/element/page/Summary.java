@@ -4,9 +4,9 @@ import wcs.api.Asset;
 import wcs.api.Env;
 import wcs.api.Index;
 import wcs.api.Log;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.Element;
-import wcs.java.Picker;
 import wcs.java.Template;
 
 @Index("demo/elements.txt")
@@ -27,21 +27,20 @@ public class Summary extends Element {
 			log.debug("Demo ContentSeeAlso");
 
 		Asset a = e.getAsset();
-		Picker html = Picker.load("/blueprint/template.html", "#related");
+		Picker html = e.pick("/blueprint/template.html", "#related");
 		html.replace("#related-title", a.getString("Title"));
 		html.replace("#related-body", a.getString("Summary"));
 		html.removeAttrs("*[id^=related]", "id");
 		return html.outerHtml();
 	}
 
-
-    public String applyTouch(Env e) {
-        Asset a = e.getAsset();
-        Picker html = Picker.load("/blueprint/template.html", "#related");
-        html.replace("#related-title", a.getString("Title"));
-        html.replace("#related-body", a.getString("Summary"));
-        html.removeAttrs("*[id^=related]", "id");
-        return html.outerHtml();
-    }
+	public String applyTouch(Env e) {
+		Asset a = e.getAsset();
+		Picker html = e.pick("/blueprint/template.html", "#related");
+		html.replace("#related-title", a.getString("Title"));
+		html.replace("#related-body", a.getString("Summary"));
+		html.removeAttrs("*[id^=related]", "id");
+		return html.outerHtml();
+	}
 
 }

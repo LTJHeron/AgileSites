@@ -4,7 +4,7 @@ import wcs.api.Log;
 import wcs.api.Index;
 import wcs.api.Env;
 import wcs.api.Asset; 
-import wcs.java.Picker;
+import wcs.api.Picker;
 import wcs.java.Element;
 import wcs.java.Template;
 import wcs.java.AssetSetup;
@@ -23,7 +23,7 @@ public class $subtype;format="deprefix"$Layout extends Element {
 	@Override
 	public String apply(Env e) {
 		// log.trace("$subtype$Layout");
-		Picker html = Picker.load("/$site;format="normalize"$/simple.html" , "#content");	    
+		Picker html = e.pick("/$site;format="normalize"$/simple.html" , "#content");	    
 		Asset a = e.getAsset();
 	    //html.replace("#detail", a.call("ContentDetail"));
 	    //html.replace("#footer", e.call("Footer"));

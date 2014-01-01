@@ -4,9 +4,9 @@ import wcs.api.Asset;
 import wcs.api.Env;
 import wcs.api.Index;
 import wcs.api.Log;
+import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.Element;
-import wcs.java.Picker;
 import wcs.java.Template;
 
 @Index("demo/elements.txt")
@@ -25,9 +25,9 @@ public class ContentLayout extends Element {
 	public String apply(Env e) {
 		if (log.debug())
 			log.debug("Demo ContentLayout");
-
+		
 		Asset a = e.getAsset();
-		Picker html = Picker.load("/blueprint/template.html", "#content");
+		Picker html = e.pick("/blueprint/template.html", "#content");
 
 		html.prefixAttrs("img", "src", "/cs/blueprint/");
 

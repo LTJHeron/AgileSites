@@ -116,7 +116,8 @@ trait AgileSitesUtil {
     prp.setProperty("agilesites.dir", jardir.getAbsolutePath);
     prp.setProperty("agilesites.poll", "1000");
     prp.setProperty("agilesites.static", file(static).getAbsolutePath);
-    prp.setProperty("cs.csdtfolder", file("export").getAbsolutePath)
+     
+    //prp.setProperty("cs.csdtfolder", file("export").getAbsolutePath)
 
     println("~ " + prpFile)
     prp.store(new java.io.FileWriter(prpFile),

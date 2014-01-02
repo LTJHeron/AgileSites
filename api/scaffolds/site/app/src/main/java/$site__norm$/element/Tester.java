@@ -16,6 +16,6 @@ public class Tester extends TestRunnerElement {
 	@Override
 	public Class<?>[] tests() {
 		// all the tests of the suite
-		return Util.classesFromResource("$site$", "tests.txt");
+		return Util.classesFromResource("$site$", "tests.txt", Tester.class);
 	}
 }

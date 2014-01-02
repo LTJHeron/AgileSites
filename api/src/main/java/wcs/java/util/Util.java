@@ -203,28 +203,33 @@ public class Util {
 	 * 
 	 * @param site
 	 * @param resourceName
+	 * @param clazz
+	 *            the class calling it to get a suitable classloader
 	 * @return
 	 */
 	public static Class<?>[] classesFromResource(String site,
-			String resourceName) {
+			String resourceName, Class<?> clazz) {
 		String res = "/" + wcs.core.WCS.normalizeSiteName(site) + "/"
 				+ resourceName;
 		log.debug("res=" + res);
 		List<Class<?>> classList = new LinkedList<Class<?>>();
 		try {
-			InputStream is = Util.class.getResourceAsStream(res);
+			InputStream is = clazz.getResourceAsStream(res);
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
 
 			String className = br.readLine();
 			while (className != null) {
-				log.debug("read " + className);
-				try {
-					if (className.trim().length() > 0)
-						classList.add(Class.forName(className));
-				} catch (Exception e) {
-					log.warn("oops! cannot create " + className);
-				}
+				className = className.trim();
+				if (!className.startsWith("#"))
+					try {
+						log.debug("read " + className);
+						if (className.trim().length() > 0)
+							classList.add(Class.forName(className, true,
+									clazz.getClassLoader()));
+					} catch (Exception e) {
+						log.warn(e, "oops! cannot create " + className);
+					}
 				className = br.readLine();
 			}
 		} catch (Exception e) {

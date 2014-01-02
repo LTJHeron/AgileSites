@@ -5,7 +5,6 @@ import static wcs.Api.model;
 import wcs.api.Env;
 import wcs.api.Index;
 import wcs.api.Log;
-import wcs.api.Picker;
 import wcs.java.AssetSetup;
 import wcs.java.CSElement;
 import wcs.java.Element;

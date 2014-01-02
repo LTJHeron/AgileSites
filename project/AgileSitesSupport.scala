@@ -79,16 +79,17 @@ trait AgileSitesSupport extends AgileSitesUtil {
     }
 
   // interface to csdt from sbt
-  lazy val wcsCsdt = InputKey[Unit]("wcs-dt", "WCS Development Tool")
+  lazy val wcsCsdt = InputKey[Unit]("csdt", "WCS Development Tool")
   val wcsCsdtTask = wcsCsdt <<= inputTask {
     (argTask: TaskKey[Seq[String]]) =>
-      (argTask, wcsVersion, wcsUrl, wcsSites, wcsUser, wcsPassword, fullClasspath in Compile, streams, runner) map {
-        (args, version, url, sites, user, password, classpath, s, runner) =>
+      (argTask, wcsHome, wcsVersion, wcsUrl, wcsSites, wcsUser, wcsPassword, fullClasspath in Compile, streams, runner) map {
+        (args, home, version, url, sites, user, password, classpath, s, runner) =>
 
           val re = "^(cas-client-core-\\d|csdt-client-\\d|rest-api-\\d|wem-sso-api-\\d|wem-sso-api-cas-\\d|spring-\\d|commons-logging-|servlet-api|sites-security|esapi-|cs-|http(client|core|mime)-).*.jar$".r;
           val seljars = classpath.files.filter(f => !re.findAllIn(f.getName).isEmpty)
-          val sitesSearch = (( "!" + sites) +: args).reverse.filter(_.startsWith("!")).head.substring(1)
-          val workspaces = (file("export") / "envision").listFiles.filter(_.isDirectory).map(_.getName)
+          val fromSites = (( "!" + sites) +: args).reverse.filter(_.startsWith("!")).head.substring(1)
+          val toSites = (( "^" + fromSites) +: args).reverse.filter(_.startsWith("^")).head.substring(1)
+          val workspaces = (file(home) / "export" / "envision").listFiles.filter(_.isDirectory).map(_.getName)
           val workspaceSearch = ("#cs_workspace" +: args).reverse.filter(_.startsWith("#")).head.substring(1)
           val workspace = workspaces.filter( _.indexOf(workspaceSearch) != -1)
 
@@ -100,12 +101,12 @@ trait AgileSitesSupport extends AgileSitesUtil {
                        seljars, args.drop(1), s.log)(runner)
 
           } else if(args.size == 0) {
-            println("""usage: wcs-dt  [<cmd>]  [<selector> ...] [#<workspace>] [!<sites>]
+            println("""usage:csdt [<cmd>]  [<selector> ...] [#<workspace>] [!<from-sites>] [^<to-sites>]
                        | <workspace> can be a substring of available workspaces,
                        |   default workspace is: cs_workspace
                        |   available workspaces are: %s
-                       | <sites> is a comma separated list of sites defined, 
-                       |   defaults to '%s' 
+                       | <from-sites> ans <to-sites> is a comma separated list of sites defined, 
+                       |   <from-sites> defaults to '%s', <to-sites> default to <from-sites> 
                        | <cmd> is one of 'listcs', 'listds', 'import', 'export', 'mkws'
                        |    defaults to 'listcs'
                        | <selector> check developer tool documentation for complete syntax
@@ -113,7 +114,7 @@ trait AgileSitesSupport extends AgileSitesUtil {
                        |    the special form are
                        |      @SITE @ASSET_TYPE @ALL_ASSETS @STARTMENU @TREETAB
                        |  and also additional @ALL for all of them
-                       |""".stripMargin.format(workspaces.mkString("'", "', '", "'"), sitesSearch))
+                       |""".stripMargin.format(workspaces.mkString("'", "', '", "'"), fromSites))
           } else if (workspace.size == 0)
             println("workspace " + workspaceSearch + " not found - create it with mkws <workspace>")
           else if (workspace.size > 1)
@@ -135,7 +136,7 @@ trait AgileSitesSupport extends AgileSitesUtil {
                 }
             }
 
-            val args1 = args.filter(!_.startsWith("#")).filter(!_.startsWith("!"))
+            val args1 = args.filter(!_.startsWith("#")).filter(!_.startsWith("!")).filter(!_.startsWith("^"))
             val firstArg = if (args1.size > 0) args1(0) else "listcs"
             val resources = firstArg match {
               case "listcs" => processArgs(args1)
@@ -146,7 +147,7 @@ trait AgileSitesSupport extends AgileSitesUtil {
                 if(args1.size==1) {
                  println("please specify workspace name")
                 } else {
-                  val ws = file("export") / "envision" / args1(1)
+                  val ws = file(home)  / "export" / "envision" / args1(1)
                   if(ws.exists)
                     println("nothing to do - workspace "+args1(1)+" exists")
                   else {
@@ -169,7 +170,8 @@ trait AgileSitesSupport extends AgileSitesUtil {
                 "password=" + password,
                 "cmd=" + firstArg,
                 "resources=" + res,
-                "fromSites=" + sitesSearch,
+                "fromSites=" + fromSites,
+                "toSites=" + toSites,
                 "datastore=" + workspace.head)
 
               s.log.debug(seljars.mkString("\n"))
@@ -212,7 +214,7 @@ trait AgileSitesSupport extends AgileSitesUtil {
       }
   }
 
-  lazy val wcsCatalogManager = InputKey[Unit]("wcs-cm", "WCS Catalog Manager")
+  lazy val wcsCatalogManager = InputKey[Unit]("cmov", "WCS Catalog Mover")
   val wcsCatalogManagerTask = wcsCatalogManager <<= inputTask {
     (argsTask: TaskKey[Seq[String]]) =>
       (argsTask, wcsUrl,  wcsUser, wcsPassword, fullClasspath in Compile, streams) map {
@@ -384,7 +386,7 @@ trait AgileSitesSupport extends AgileSitesUtil {
 
             println("""**** Setup Complete.
                 |**** Please restart your application server.
-                |**** You need to complete installation with "wcs-deploy".""".stripMargin)
+                |**** You need to complete installation with "wcs-populate".""".stripMargin)
         }
   }
 
@@ -452,17 +454,17 @@ trait AgileSitesSupport extends AgileSitesUtil {
               }.start
               None
             case "start" :: Nil =>
-              Some("op=start&level=DEBUG&%s" format parse(Nil))
+              Some("&op=start&level=DEBUG&%s" format parse(Nil))
             case "stop" :: rest =>
-              Some("op=stop&%s" format parse(rest))
+              Some("&op=stop&%s" format parse(rest))
             case "list" :: rest =>
-              Some("op=list")
+              Some("&op=list")
             case level :: rest =>
               if ("ERROR|WARN|DEBUG|INFO|TRACE".r findAllIn level.toUpperCase isEmpty) {
                 println("Invalid level " + level)
                 None
               } else
-                Some("op=start&level=%s&%s" format (level.toUpperCase, parse(rest)))
+                Some("&op=start&level=%s&%s" format (level.toUpperCase, parse(rest)))
             case _ =>
               usage
               None

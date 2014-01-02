@@ -167,7 +167,7 @@ public class WCS {
 		try {
 			wcs.api.Env env = (wcs.api.Env) Dispatcher.getDispatcher(ics)
 					.loadClass(className).newInstance();
-			env.init(ics);
+			env.init(ics, true);
 			return env;
 		} catch (Exception ex) {
 			log.error(ex, "[WCS.getEnv]");

@@ -27,14 +27,27 @@ import COM.FutureTense.Interfaces.IList;
  * 
  */
 public class Api {
+
+	final static Log log = Log.getLog(Api.class);
+
 	private static long tmpVarCounter = System.currentTimeMillis();
 
 	/**
-	 * Access to the env in a JSP
+	 * Access to the env with a DefaultConfig and a DefaultRouter
 	 */
 	public static Env env(ICS ics) {
-		return wcs.core.WCS.getEnv(ics, "wcs.java.Env");
+		Env e = null;
+		try {
+			Class<?> clazz = Class.forName("wcs.java.Env");
+			e = (Env) clazz.newInstance();			
+			e.init(ics, false);
+			return e;
+		} catch (Exception ex) {
+			log.error(ex, "Api.env");
+		}
+		return e;
 	}
+
 	/**
 	 * Generate an unique temporary var name.
 	 * 
@@ -72,6 +85,19 @@ public class Api {
 	 */
 	public static Model model(Arg... args) {
 		return new Model(args);
+	}
+
+	/**
+	 * Extend a model from a sequence for key/values. Even arguments are the
+	 * keys, odd arguments are the values Note that if the number is odd the
+	 * last parameter is ignored.
+	 */
+	public static Model model(Model m, String... argv) {
+		int n = argv.length / 2;
+		Arg[] args = new Arg[n];
+		for (int i = 0, j = 0; i < n; i++)
+			args[n] = arg(argv[j++], argv[j++]);
+		return new Model(m, args);
 	}
 
 	/**
@@ -293,7 +319,7 @@ public class Api {
 	public static void out(Content content, String name) {
 		System.out.println(content.dump(name));
 	}
-	
+
 	/**
 	 * Get a logger by name
 	 * 
@@ -312,6 +338,30 @@ public class Api {
 	 */
 	public static Log getLog(Class<?> clazz) {
 		return Log.getLog(clazz);
+	}
+
+	/**
+	 * Alias for arg
+	 * 
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public static Arg a(String name, String value) {
+		return new Arg(name, value);
+	}
+
+	/**
+	 * Create a Model from a sequence for key/values. Even arguments are the
+	 * keys, odd arguments are the values Note that if the number is odd the
+	 * last parameter is ignored.
+	 */
+	public static Model m(String... argv) {
+		int n = argv.length / 2;
+		Arg[] args = new Arg[n];
+		for (int i = 0, j = 0; i < n; i++)
+			args[n] = arg(argv[j++], argv[j++]);
+		return new Model(args);
 	}
 
 }

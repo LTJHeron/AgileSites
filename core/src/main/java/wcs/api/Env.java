@@ -7,8 +7,13 @@ public interface Env extends Content {
 
 	/**
 	 * Initialize the class with the ICS
+	 * 
+	 * If dispatch is true initialize the class from the extended classloader,
+	 * initializing Router and Config from the extension jars. If false use the
+	 * DefaultConfig and the DefaultRouter.
+	 * 
 	 */
-	public void init(ICS ics);
+	public void init(ICS ics, boolean dispatch);
 
 	/**
 	 * Return the underlying ICS

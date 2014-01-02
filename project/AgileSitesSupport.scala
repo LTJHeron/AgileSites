@@ -221,6 +221,18 @@ trait AgileSitesSupport extends AgileSitesUtil {
       }
   }
 
+
+  lazy val wcsPopulate = TaskKey[Unit]("wcs-populate", "WCS Catalog Manager Populate")
+  val wcsPopulateTask = wcsPopulate <<= 
+     (wcsHello, wcsHome, wcsUrl,  wcsUser, wcsPassword, fullClasspath in Compile, streams) map {
+        (hello, home, url, user, pass, classpath, s) =>
+          if(hello.isEmpty)
+            throw new Exception("Web Center Sites must be online.")
+          catalogManager(url, user, pass, classpath.files, Seq("import_all"), s.log)
+          ( file(home) / "populate.done" ).createNewFile
+  }
+
+
   /// note the same name for package and assembly
   /// but assembly used in top level, package used in subprojects
  

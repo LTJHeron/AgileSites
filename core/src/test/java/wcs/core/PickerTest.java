@@ -3,6 +3,7 @@ package wcs.core;
 import static org.junit.Assert.assertEquals;
 import static wcs.Api.*;
 import wcs.api.Content;
+import wcs.api.Model;
 import wcs.api.Picker;
 
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class PickerTest {
 	Picker two =  new Picker("Some {{First}} then {{Second}}");
 	Picker two2 = new Picker("Some {{First}} then {{Second}} then {{First}}");
 
-	Content c0 = model();
+	Content c0 = new Model();
 	Content c1 = model(arg("First", "[first]"));
 	Content c2 = model(arg("Second", "[second]"));
 	Content c3 = model(arg("First", "[firstbis]"), arg("Second", "[secondbis]"));

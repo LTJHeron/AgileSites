@@ -77,6 +77,7 @@ public class Env extends wcs.core.ICSProxyJ implements Content, wcs.api.Env {
 	 * 
 	 * @param ics
 	 */
+	@Override
 	public void init(ICS ics, boolean dispatch) {
 		super.init(ics);
 		site = ics.GetVar("site");

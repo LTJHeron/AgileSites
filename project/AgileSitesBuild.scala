@@ -41,7 +41,7 @@ object AgileSitesBuild extends Build with AgileSitesSupport {
     "ics.jar" || "cs.jar" || "xcelerate.jar" || "gator.jar" || "visitor.jar" || "ehcache-*" || "sites-*" || "esapi-*"
 
   /// END CHANGES
-  val v = "1.8.1-SNAPSHOT"
+  val v = "2.0-SNAPSHOT"
 
   val includeFilterUnmanagedJars = includeFilter in unmanagedJars := unmanagedFilter
 
@@ -133,6 +133,7 @@ object AgileSitesBuild extends Build with AgileSitesSupport {
        wcsHelloTask,
        wcsCatalogManagerTask,
        wcsSetupTask,
+       wcsPopulateTask,
        wcsWebappSatelliteTask,
        wcsSetupSatelliteTask,
        wcsDeployTask,

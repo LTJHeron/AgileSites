@@ -15,9 +15,12 @@ import wcs.api.URL;
 /**
  * Default router
  * 
- * It assumes that all the type names starts with the site name.
+ * It routes strings in the form /Something as page with name Something
  * 
- * So /Type/value means MySite_Type
+ * It routes strings in the form /Type/name as assets of type Site_Type with
+ * name Something'
+ * 
+ * Hence it assumes that all the type names starts with the site name.
  * 
  * @author msciab
  * 
@@ -29,6 +32,13 @@ public class DefaultRouter extends wcs.java.Router {
 	private String site;
 
 	public DefaultRouter(String site) {
+		init(site);
+	}
+
+	public DefaultRouter() {
+	}
+
+	public void init(String site) {
 		this.site = site;
 	}
 

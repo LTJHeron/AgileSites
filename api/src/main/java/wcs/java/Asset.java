@@ -588,6 +588,7 @@ public class Asset extends AssetBase implements wcs.api.Asset,
 
         // invoke tag
         RenderTag.Getbloburl tag = RenderTag.getbloburl()
+        		.assembler("agilesites")
                 .blobtable(bcfg.getBlobTable(e.ics()))
                 .blobcol(bcfg.getBlobUrl(e.ics()))
                 .blobkey(WCS.normalizeSiteName(bcfg.getSite()))

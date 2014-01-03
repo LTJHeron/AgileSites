@@ -129,7 +129,11 @@ public class Dispatcher {
 	public Class<?> loadSiteClass(ICS ics, String name) {
 		String site = ics.GetVar("site");
 		String className = WCS.normalizeSiteName(site) + "." + name;
-		return loadClass(className);
+		Class<?> clazz = loadClass(className);
+		if (clazz == null)
+			return loadClass("wcs.java.util.Default" + name);
+		else
+			return clazz;
 	}
 
 	/**
@@ -143,7 +147,8 @@ public class Dispatcher {
 			throws Exception {
 		try {
 			// get and extecute the router
-			Object obj = loadSiteClass(ics, "Router").newInstance();
+			Class<?> clazz = loadSiteClass(ics, "Router");
+			Object obj = clazz.newInstance();
 			if (obj instanceof Router) {
 				Router router = (Router) obj;
 				router.init(site);

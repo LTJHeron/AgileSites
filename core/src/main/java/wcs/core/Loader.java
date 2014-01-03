@@ -14,8 +14,10 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import wcs.api.Log;
 
@@ -70,6 +72,7 @@ public class Loader {
 	}
 
 	private void cleanup() {
+		notFoundCache.clear();
 		for (File sdir : jarDir.listFiles(onlyTempDirs)) {
 			if (currentSpoolDir != null
 					&& !currentSpoolDir.getAbsolutePath().equals(
@@ -211,6 +214,8 @@ public class Loader {
 						&& oldClassLoader instanceof URLClassLoader)
 					((URLClassLoader) oldClassLoader).close();
 
+				// clean cache of not found
+				notFoundCache.clear();
 				currentSpoolDir = newSpoolDir;
 				cleanup();
 
@@ -327,6 +332,8 @@ public class Loader {
 		}
 	}
 
+	private Set<String> notFoundCache = new HashSet<String>();
+
 	/**
 	 * Load a class for name from current class loaders
 	 * 
@@ -334,13 +341,17 @@ public class Loader {
 	 * @return
 	 */
 	public Class<?> loadClass(String classname) {
+		if (notFoundCache.contains(classname))
+			return null;
 		try {
 			ClassLoader cl = getClassLoader();
 			if (log.trace())
 				log.trace("loading %s", classname);
 			return Class.forName(classname, true, cl);
 		} catch (ClassNotFoundException ex) {
-			log.error(ex, "[Loader.loadClass]");
+			notFoundCache.add(classname);
+			if (log.trace())
+				log.trace("not found %s", classname);
 			return null;
 		}
 	}

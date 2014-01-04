@@ -87,26 +87,31 @@ trait AgileSitesSupport extends AgileSitesUtil {
 
           val re = "^(cas-client-core-\\d|csdt-client-\\d|rest-api-\\d|wem-sso-api-\\d|wem-sso-api-cas-\\d|spring-\\d|commons-logging-|servlet-api|sites-security|esapi-|cs-|http(client|core|mime)-).*.jar$".r;
           val seljars = classpath.files.filter(f => !re.findAllIn(f.getName).isEmpty)
-          val fromSites = (( "!" + sites) +: args).reverse.filter(_.startsWith("!")).head.substring(1)
-          val toSites = (( "^" + fromSites) +: args).reverse.filter(_.startsWith("^")).head.substring(1)
+          
           val workspaces = (file(home) / "export" / "envision").listFiles.filter(_.isDirectory).map(_.getName)
-          val workspaceSearch = ("#cs_workspace" +: args).reverse.filter(_.startsWith("#")).head.substring(1)
-          val workspace = workspaces.filter( _.indexOf(workspaceSearch) != -1)
+          val workspaceSearch = ("#cs_workspace#" +: args).reverse.filter(_.startsWith("#")).head.substring(1)
+          
+          val (defaultSite, workspace) = if(!workspaceSearch.endsWith("#"))
+              workspaceSearch -> workspaces.filter( _.indexOf(workspaceSearch) != -1) 
+          else workspaceSearch.init -> workspaces.filter(_ == workspaceSearch.init) 
 
+
+          val fromSites = (( "!" + defaultSite) +: args).reverse.filter(_.startsWith("!")).head.substring(1)
+          val toSites = (( "^" + fromSites) +: args).reverse.filter(_.startsWith("^")).head.substring(1)
+        
           //println(workspaceSearch)
           //println(workspace.mkString(" "))
 
           if(args.size >0 && args(0) == "raw") {
               Run.run("com.fatwire.csdt.client.main.CSDT", 
                        seljars, args.drop(1), s.log)(runner)
-
           } else if(args.size == 0) {
-            println("""usage:csdt [<cmd>]  [<selector> ...] [#<workspace>] [!<from-sites>] [^<to-sites>]
-                       | <workspace> can be a substring of available workspaces,
+            println("""usage:csdt [<cmd>]  [<selector> ...] [#<workspace>[#]] [!<from-sites>] [^<to-sites>]
+                       | <workspace> is a substring of available workspaces, use #workspace# for an exact match
                        |   default workspace is: cs_workspace
                        |   available workspaces are: %s
-                       | <from-sites> ans <to-sites> is a comma separated list of sites defined, 
-                       |   <from-sites> defaults to '%s', <to-sites> default to <from-sites> 
+                       | <from-sites> and <to-sites> is a comma separated list of sites defined, 
+                       |   <from-sites> defaults to <workspace>, <to-sites> default to <from-sites> 
                        | <cmd> is one of 'listcs', 'listds', 'import', 'export', 'mkws'
                        |    defaults to 'listcs'
                        | <selector> check developer tool documentation for complete syntax
@@ -114,13 +119,12 @@ trait AgileSitesSupport extends AgileSitesUtil {
                        |    the special form are
                        |      @SITE @ASSET_TYPE @ALL_ASSETS @STARTMENU @TREETAB
                        |  and also additional @ALL for all of them
-                       |""".stripMargin.format(workspaces.mkString("'", "', '", "'"), fromSites))
+                       |""".stripMargin.format(workspaces.mkString("'", "', '", "'")))
           } else if (workspace.size == 0)
             println("workspace " + workspaceSearch + " not found - create it with mkws <workspace>")
           else if (workspace.size > 1)
             println("workspace " + workspaceSearch + " is ambigous")
           else {
-
             def processArgs(args: Seq[String]) = {
                 if(args.size == 0 || args.size==1) {
                   println("""please specify what you want to export or use @ALL to export all

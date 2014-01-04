@@ -89,10 +89,8 @@ public class SitePlan implements wcs.api.SitePlan {
 		return ilist2aid(list);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see wcs.java.ISitePlan#path()
+	/**
+	 * Return path from current node up to the root
 	 */
 	@Override
 	public Id[] path() {
